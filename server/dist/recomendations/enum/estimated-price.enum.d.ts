@@ -1,0 +1,6 @@
+export declare enum estimatedPriceEnum {
+    FREE = "\u0431\u0435\u0441\u043F\u043B\u0430\u0442\u043D\u043E",
+    LOW = "\u043D\u0438\u0437\u043A\u0438\u0439",
+    MEDIUM = "\u0441\u0440\u0435\u0434\u043D\u0438\u0439",
+    HIGH = "\u0432\u044B\u0441\u043E\u043A\u0438\u0439"
+}

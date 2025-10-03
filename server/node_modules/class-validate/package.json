@@ -1,0 +1,32 @@
+{
+  "name": "class-validate",
+  "version": "0.0.1",
+  "description": "Validate, class validator, async validator, validator schema",
+  "main": "dist/index.js",
+  "author": "Nguyen Duc Long",
+  "license": "MIT",
+  "private": false,
+  "bin": {
+    "mongoose-orm": "cli/index.js"
+  },
+  "keywords": [
+    "validator",
+    "validate",
+    "class-validator"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:nguyenduclong-ict/mongoose-orm.git"
+  },
+  "scripts": {
+    "build": "rm -rf dist && tsc --project tsconfig.prod.json",
+    "test": "ts-node --project tsconfig.dev.json"
+  },
+  "devDependencies": {},
+  "dependencies": {
+    "async-validator": "^3.5.1",
+    "reflect-metadata": "^0.1.13",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.1.3"
+  }
+}
