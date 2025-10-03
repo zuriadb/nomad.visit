@@ -1,0 +1,206 @@
+{
+  "choose_language": "Choose language:",
+  "agreement": {
+    "title": "User Agreement",
+    "text": "Do you agree to share data for analytics?\nThis data will be used to improve service quality."
+  },
+  "buttons": {
+    "agree": "Agree",
+    "disagree": "Disagree",
+    "select": "Select",
+    "cancel": "Cancel",
+    "continue": "Continue"
+  },
+  "welcome": {
+    "title": "Welcome",
+    "subtitle": "Sign in to continue"
+  },
+  "login": {
+    "title": "Login",
+    "apple": "Sign in with Apple",
+    "google": "Sign in with Google",
+    "facebook": "Sign in with Facebook"
+  },
+  "providers": {
+    "apple": "Apple",
+    "google": "Google",
+    "facebook": "Facebook"
+  },
+  "dialog": {
+    "title": "Continue with {provider}?",
+    "content": "Do you want to sign in using this provider?"
+  },
+  "stopped": "Stopped",
+  "travel": {
+    "title": "Your travel preferences:",
+    "subtitle": "Let's guide the AI to plan your trip",
+    "person": {
+      "title": "Who do you want to travel with?",
+      "alone": "Alone",
+      "couple": "With a partner",
+      "friend": "With a friend",
+      "family": "With family"
+    },
+    "preferences": {
+      "title": "What are your travel preferences?",
+      "adventure": "Adventure",
+      "relax": "Relax",
+      "cultural": "Cultural",
+      "night": "Nightlife",
+      "eco": "Eco",
+      "lux": "Luxury",
+      "romantic": "Romantic",
+      "food": "Food",
+      "rest": "Rest"
+    },
+    "season": {
+      "title": "Which season do you prefer for travel?",
+      "spring": "Spring",
+      "summer": "Summer",
+      "autumn": "Autumn",
+      "winter": "Winter"
+    },
+    "plan": {
+      "title": "New Plan",
+      "subtitle": "Selected preferences"
+    },
+    "cuisine": {
+      "title": "Travel preferences",
+      "subtitle": "Let's guide the AI to plan your trip",
+      "question": "Which cuisine do you like?",
+      "options": {
+        "kazakh": "Kazakh",
+        "italian": "Italian",
+        "japanese": "Japanese",
+        "russian": "Russian",
+        "turkish": "Turkish",
+        "chinese": "Chinese",
+        "korean": "Korean",
+        "indian": "Indian",
+        "georgian": "Georgian",
+        "french": "French",
+        "mexican": "Mexican",
+        "american": "American"
+      }
+    },
+    "drinks": {
+      "question": "Which drink do you prefer?",
+      "options": {
+        "coffee": "Coffee",
+        "tea": "Tea",
+        "wine": "Wine",
+        "beer": "Beer",
+        "smoothie": "Smoothie",
+        "cocktail": "Cocktail",
+        "soda": "Soda",
+        "juice": "Juice",
+        "whiskey": "Whiskey",
+        "champagne": "Champagne",
+        "milkshake": "Milkshake",
+        "kymyz": "Kymyz",
+        "bubbletea": "Bubble Tea",
+        "shubat": "Shubat",
+        "water": "Water"
+      }
+    },
+    "activities": {
+      "question": "How do you want to spend your time?",
+      "options": {
+        "beach": "Beach",
+        "city": "City",
+        "countryside": "Countryside",
+        "lake": "Lake",
+        "historical": "Historical sites",
+        "river": "River",
+        "garden": "Park",
+        "recreation": "Recreation area",
+        "spa": "SPA",
+        "gorge": "Gorge",
+        "shopping": "Shopping",
+        "sport": "Sport",
+        "theatre": "Theatre",
+        "walking": "Walking",
+        "museum": "Museum",
+        "cooking": "Restaurant",
+        "concert": "Concert",
+        "yoga": "Yoga",
+        "religion": "Religious",
+        "skydiving": "Skydiving",
+        "fishing": "Fishing",
+        "diving": "Diving",
+        "aquapark": "Aquapark",
+        "entertainmentarea": "Entertainment area"
+      }
+    },
+    "accommodations": {
+      "question": "Where would you like to stay?",
+      "options": {
+        "hotel": "Hotel",
+        "resort": "Resort",
+        "cottage": "Cottage",
+        "camping": "Camping",
+        "hostel": "Hostel",
+        "villa": "Villa",
+        "flat": "Flat",
+        "glamping": "Glamping"
+      }
+    },
+    "transport": {
+      "question": "Which transport would you like to use?",
+      "options": {
+        "plane": "Plane",
+        "train": "Train",
+        "bike": "Bicycle",
+        "car": "Car",
+        "bus": "Bus",
+        "motorcycle": "Motorcycle",
+        "helicopter": "Helicopter",
+        "minivan": "Minivan",
+        "scooter": "Scooter",
+        "kayak": "Kayak"
+      }
+    },
+    "budget": {
+      "question": "How much budget do you plan to spend?",
+      "text": "₸"
+    },
+    "duration": {
+      "question": "How many days will your trip last?"
+    }
+  },
+  "loading": {
+    "message": "Your personal plan is being created..."
+  },
+  "eighthPage": {
+    "title": "Your Plan",
+    "saveButton": "Save",
+    "days": "26 September,27 September,28 September",
+    "activities": {
+      "22_1": "Arrival at the airport",
+      "22_2": "Transfer to Radisson Hotel Astana",
+      "22_3": "Check-in and rest",
+      "22_4": "Breakfast at the hotel",
+      "22_5": "Walk along the Ishim River embankment",
+      "22_6": "Visit Bayterek",
+      "22_7": "Lunch at Kishlak restaurant",
+      "22_8": "Visit Astana Opera",
+      "22_9": "Dinner at Tary restaurant",
+      "22_10": "Return to hotel and rest",
+      "23_1": "Breakfast at the hotel",
+      "23_2": "Visit Hazret Sultan Mosque",
+      "23_3": "Walk around Republic Square",
+      "23_4": "Lunch at Sandyq restaurant",
+      "23_5": "Shopping at Khan Shatyr",
+      "23_6": "Visit National Museum of Kazakhstan",
+      "23_7": "Walk along Nurzhol Boulevard",
+      "23_8": "Dinner at MÉTIS restaurant",
+      "23_9": "Return to hotel and rest",
+      "24_1": "Breakfast at the hotel",
+      "24_2": "Walk in the Botanical Garden",
+      "24_3": "Shopping at Mega Silk Way",
+      "24_4": "Lunch at Line Brew restaurant",
+      "24_5": "Transfer to airport",
+      "24_6": "Flight from Nur-Sultan"
+    }
+  }
+}
