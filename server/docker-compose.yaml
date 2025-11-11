@@ -4,7 +4,7 @@ services:
       dockerfile: Dockerfile
       context: .
     ports:
-      - "3009:3009" 
+      - "3006:3006" 
     extra_hosts:
       - "host.docker.internal:host-gateway"
     environment:
@@ -27,7 +27,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_PORT: ${DB_PORT}
     ports:
-      - '5432:5432'
+      - '5434:5434'
     volumes:
       - pgdata:/var/lib/postgresql/data:Z
     restart: unless-stopped

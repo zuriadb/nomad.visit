@@ -1,13 +1,9 @@
 FROM node:20-alpine
 
 WORKDIR /usr/src/app
-
 COPY package*.json ./
-
-RUN npm install --production
-
+RUN npm ci
 COPY . .
-
-EXPOSE 3008
-
-CMD ["npm", "start"]
+RUN chmod +x ./node_modules/.bin/*
+EXPOSE 3006
+CMD ["npx", "nest", "start", "--watch"]
