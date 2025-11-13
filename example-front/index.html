@@ -155,60 +155,236 @@
     <script>
         let map = null;
         let markers = {};
-        let currentUser = null;
         let recommendations = [];
         
         // Авторизация
-        function handleLogin() {
+
+        const API_BASE_URL = 'http://localhost:3006/api/v1';
+        let currentUser = null;
+        let accessToken = null;
+        let refreshToken = null;
+
+        // Загрузка токенов из localStorage при старте
+        function loadTokens() {
+            accessToken = localStorage.getItem('accessToken');
+            refreshToken = localStorage.getItem('refreshToken');
+            const userData = localStorage.getItem('userData');
+            
+            if (accessToken && userData) {
+                currentUser = JSON.parse(userData);
+                showMainApp();
+            }
+        }
+
+        // Сохранение токенов в localStorage
+        function saveTokens(access, refresh, user) {
+            accessToken = access;
+            refreshToken = refresh;
+            currentUser = user;
+            
+            localStorage.setItem('accessToken', access);
+            if (refresh) {
+                localStorage.setItem('refreshToken', refresh);
+            }
+            localStorage.setItem('userData', JSON.stringify(user));
+        }
+
+        // Очистка токенов
+        function clearAuth() {
+            accessToken = null;
+            refreshToken = null;
+            currentUser = null;
+            
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('userData');
+        }
+
+        // Обновление access token
+        async function refreshAccessToken() {
+            if (!refreshToken) {
+                console.log('Нет refresh token');
+                return false;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/refresh-token`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        token: refreshToken
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    accessToken = data.access_token || data.accessToken;
+                    if (data.refresh_token || data.refreshToken) {
+                        refreshToken = data.refresh_token || data.refreshToken;
+                        localStorage.setItem('refreshToken', refreshToken);
+                    }
+                    localStorage.setItem('accessToken', accessToken);
+                    return true;
+                } else {
+                    console.error('Ошибка обновления токена:', response.status);
+                    handleLogout();
+                    return false;
+                }
+            } catch (error) {
+                console.error('Ошибка обновления токена:', error);
+                handleLogout();
+                return false;
+            }
+        }
+
+        // Обработка логина
+        async function handleLogin() {
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
             
-            if (email && password) {
-                currentUser = { email, name: email.split('@')[0] };
-                showMainApp();
-            } else {
+            if (!email || !password) {
                 alert('Заполните все поля');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                console.log('Login response status:', response.status);
+                
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ message: 'Неизвестная ошибка' }));
+                    alert(`Ошибка входа: ${errorData.message || 'Проверьте данные'}`);
+                    return;
+                }
+
+                const data = await response.json();
+                console.log('Login response:', data);
+
+                // Структура вашего API: { access_token: "..." }
+                saveTokens(
+                    data.access_token,
+                    data.refresh_token || null,
+                    { 
+                        email: email, 
+                        name: email.split('@')[0]
+                    }
+                );
+                showMainApp();
+            } catch (error) {
+                console.error('Ошибка:', error);
+                alert('Ошибка подключения к серверу: ' + error.message);
             }
         }
-        
-        function handleRegister() {
+
+        // Обработка регистрации
+        async function handleRegister() {
             const name = document.getElementById('registerName').value;
             const email = document.getElementById('registerEmail').value;
             const password = document.getElementById('registerPassword').value;
             const confirm = document.getElementById('registerConfirm').value;
             
-            if (name && email && password && confirm) {
-                if (password === confirm) {
-                    currentUser = { email, name };
-                    showMainApp();
-                } else {
-                    alert('Пароли не совпадают');
-                }
-            } else {
+            if (!name || !email || !password || !confirm) {
                 alert('Заполните все поля');
+                return;
+            }
+
+            if (password !== confirm) {
+                alert('Пароли не совпадают');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email,
+                        username: name,
+                        password,
+                        role: 'user'
+                    })
+                });
+
+                console.log('Register response status:', response.status);
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ message: 'Неизвестная ошибка' }));
+                    alert(`Ошибка регистрации: ${errorData.message || 'Попробуйте другой email'}`);
+                    return;
+                }
+
+                const data = await response.json();
+                console.log('Register response:', data);
+                
+                alert('Регистрация успешна! Теперь войдите в систему.');
+                switchToLogin();
+            } catch (error) {
+                console.error('Ошибка:', error);
+                alert('Ошибка подключения к серверу: ' + error.message);
             }
         }
-        
+
         function switchToRegister() {
             document.getElementById('loginForm').style.display = 'none';
             document.getElementById('registerForm').style.display = 'block';
             document.getElementById('authFormTitle').textContent = 'Регистрация';
         }
-        
+
         function switchToLogin() {
             document.getElementById('registerForm').style.display = 'none';
             document.getElementById('loginForm').style.display = 'block';
             document.getElementById('authFormTitle').textContent = 'Вход в приложение';
         }
-        
+
         function handleLogout() {
-            currentUser = null;
+            clearAuth();
             document.getElementById('authScreen').classList.remove('hidden');
             document.getElementById('mainApp').classList.add('hidden');
             document.getElementById('loginForm').style.display = 'block';
             document.getElementById('registerForm').style.display = 'none';
-            clearAuth();
         }
+
+        // Функция для выполнения авторизованных запросов
+        async function authenticatedFetch(url, options = {}) {
+            if (!accessToken) {
+                throw new Error('Нет токена авторизации');
+            }
+            
+            options.headers = {
+                ...options.headers,
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            };
+
+            let response = await fetch(url, options);
+
+            // Если токен истёк (401), попробуем обновить
+            if (response.status === 401) {
+                console.log('Токен истёк, пробуем обновить...');
+                const refreshed = await refreshAccessToken();
+                if (refreshed) {
+                    options.headers['Authorization'] = `Bearer ${accessToken}`;
+                    response = await fetch(url, options);
+                } else {
+                    throw new Error('Сессия истекла. Пожалуйста, войдите снова.');
+                }
+            }
+
+            return response;
+        }
+        window.addEventListener('DOMContentLoaded', loadTokens);
+
         
         function clearAuth() {
             document.getElementById('loginEmail').value = '';
@@ -265,6 +441,15 @@
             btn.disabled = true;
             btn.textContent = '⏳ Генерирование...';
             
+            // Проверяем наличие токена
+            if (!accessToken) {
+                alert('Вы не авторизованы. Пожалуйста, войдите в систему.');
+                btn.disabled = false;
+                btn.textContent = '🤖 Генерировать рекомендации';
+                handleLogout();
+                return;
+            }
+            
             const payload = {
                 cityName: document.getElementById('cityName').value,
                 userPreferences: document.getElementById('userPreferences').value,
@@ -274,17 +459,14 @@
             };
             
             try {
-                const response = await fetch('http://localhost:3006/api/v1/recomendations/generate', {
+                const response = await authenticatedFetch(`${API_BASE_URL}/recomendations/generate`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJhZWFjM2YyNy02OGQ3LTQwY2MtOTI2NS1jYzE3OTYzZTgxZmUiLCJlbWFpbCI6InN0cmluZ0BlbWFpbC5jb20iLCJpYXQiOjE3NjI4MTM0NzEsImV4cCI6MTc2MjgxNDM3MX0.lN7iWWTgTEuAVSbkpqWJexeJwLsNmTg1tfTD4uBs0JQ'
-                    },
                     body: JSON.stringify(payload)
                 });
                 
                 if (!response.ok) {
-                    throw new Error('Ошибка при получении данных');
+                    const errorData = await response.json().catch(() => ({ message: 'Неизвестная ошибка' }));
+                    throw new Error(errorData.message || `Ошибка ${response.status}`);
                 }
                 
                 const data = await response.json();
@@ -293,7 +475,7 @@
                 addMarkersToMap(recommendations);
             } catch (error) {
                 console.error('Ошибка:', error);
-                alert('Ошибка при генерации рекомендаций. Проверьте подключение к API.');
+                alert('Ошибка при генерации рекомендаций: ' + error.message);
                 document.getElementById('recommendationsList').innerHTML = `
                     <div style="padding: 40px 20px; color: #ef4444; text-align: center;">
                         <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
@@ -306,6 +488,8 @@
                 btn.textContent = '🤖 Генерировать рекомендации';
             }
         }
+
+
         
         function loadRecommendations() {
             const list = document.getElementById('recommendationsList');
