@@ -29,10 +29,10 @@ async function bootstrap() {
   });
 
   const documentConfig = new DocumentBuilder()
-    .setTitle('Brixton API')
-    .setDescription('API documentation for Brixton Application')
+    .setTitle('Nomad-Visit API')
+    .setDescription('API documentation for Nomad-Visit Application')
     .setVersion('1.0')
-    .addTag('brixton')
+    .addTag('nomad-visit')
     .addBearerAuth(
       {
         type: 'http',
