@@ -4,6 +4,10 @@ import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'providers/plan_provider.dart'; 
 import 'providers/draft_plan_provider.dart';
+import 'map_recommendations_page.dart';
+import 'services/auth_service.dart';
+import 'pages/login_page.dart';
+import 'pages/register_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,6 +49,11 @@ class MyApp extends StatelessWidget {
       supportedLocales: context.supportedLocales,
       locale: context.locale,
       home: const MyHomePage(title: 'Welcome Page'),
+      routes: {
+      '/main': (context) => const MainPage(), // <-- сюда добавь свой главный экран
+      '/login': (context) => const LoginPage(),
+      '/register': (context) => const RegisterPage(),
+  },
     );
   }
 }
@@ -231,7 +240,7 @@ class _SecondPageState extends State<SecondPage> {
                                         context,
                                         MaterialPageRoute(
                                             builder: (context) =>
-                                                const BlackScreen()),
+                                                 BlackScreen()),
                                       );
                                     },
                                     child: Text(tr('buttons.disagree')),
@@ -461,27 +470,106 @@ class ThirdPage extends StatelessWidget {
                     topRight: Radius.circular(30),
                   ),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        tr("login.title"),
-                        style: const TextStyle(
-                          fontFamily: "Inter",
-                          fontWeight: FontWeight.w500,
-                          fontSize: 24,
-                          color: Colors.black,
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          tr("login.title"),
+                          style: const TextStyle(
+                            fontFamily: "Inter",
+                            fontWeight: FontWeight.w500,
+                            fontSize: 24,
+                            color: Colors.black,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 20),
-                      _outlinedLoginButton(context, "login.apple", "assets/images/iphoneicon.png", "providers.apple"),
-                      const SizedBox(height: 12),
-                      _outlinedLoginButton(context, "login.google", "assets/images/googleicon.png", "providers.google"),
-                      const SizedBox(height: 12),
-                      _outlinedLoginButton(context, "login.facebook", "assets/images/facebookicon.png", "providers.facebook"),
-                    ],
+                        const SizedBox(height: 20),
+
+                        // Кнопка входа через Email
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => LoginPage()),
+                              );
+                            },
+                            icon: const Icon(Icons.email, size: 24),
+                            label: const Text(
+                              'Войти через Email',
+                              style: TextStyle(
+                                fontFamily: "Inter",
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                                color: Colors.black,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF78E9A9),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              minimumSize: const Size(double.infinity, 52),
+                              elevation: 0,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Разделитель
+                        Row(
+                          children: [
+                            Expanded(child: Divider(color: Colors.grey[300], thickness: 1)),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              child: Text(
+                                'или',
+                                style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                              ),
+                            ),
+                            Expanded(child: Divider(color: Colors.grey[300], thickness: 1)),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Социальные входы
+                        _outlinedLoginButton(context, "login.apple", "assets/images/iphoneicon.png", "providers.apple"),
+                        const SizedBox(height: 12),
+                        _outlinedLoginButton(context, "login.google", "assets/images/googleicon.png", "providers.google"),
+                        const SizedBox(height: 12),
+                        _outlinedLoginButton(context, "login.facebook", "assets/images/facebookicon.png", "providers.facebook"),
+                        const SizedBox(height: 20),
+
+                        // Регистрация
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              'Нет аккаунта? ',
+                              style: TextStyle(color: Colors.black54),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => RegisterPage()),
+                                );
+                              },
+                              child: const Text(
+                                'Зарегистрироваться',
+                                style: TextStyle(
+                                  color: Color(0xFF18583B),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -509,7 +597,6 @@ class BlackScreen extends StatelessWidget {
     );
   }
 }
-
 
 // =====================
 // ЧЕТВЕРТАЯ СТРАНИЦА
@@ -1678,6 +1765,7 @@ class _MainPageState extends State<MainPage> {
       const ChatPage(),
       const PlanPage(), 
       const ProfilePage(),
+      MapRecommendationsPage(),
     ]);
   }
 
@@ -1699,6 +1787,7 @@ class _MainPageState extends State<MainPage> {
           BottomNavigationBarItem(icon: Icon(Icons.smart_toy), label: "Baursak"),
           BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: "Plan"),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
+          BottomNavigationBarItem(icon: Icon(Icons.map), label: "Карта"),
         ],
       ),
     );
