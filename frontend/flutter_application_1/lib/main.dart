@@ -8,6 +8,9 @@ import 'map_recommendations_page.dart';
 import 'services/auth_service.dart';
 import 'pages/login_page.dart';
 import 'pages/register_page.dart';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -2772,36 +2775,87 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   final List<Map<String, dynamic>> messages = [
-    {"isUser": false, "text": "Привет! Я твой AI-гид по Астане. Чем могу помочь? 😊"},
+    {"isUser": false, "text": "Привет! Я твой AI-гид по Казахстану. Чем могу помочь? 😊"},
   ];
-
+  
   final TextEditingController _controller = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  bool _isLoading = false;
 
-  void _sendMessage() {
+  // Замените на адрес вашего backend сервера
+  final String apiUrl = 'http://localhost:3006/api/v1/api/chat/message';
+
+  Future<void> _sendMessage() async {
     if (_controller.text.trim().isEmpty) return;
 
+    final userMessage = _controller.text.trim();
+    _controller.clear();
+
     setState(() {
-      messages.add({"isUser": true, "text": _controller.text.trim()});
-
-      // Чистый текст без ссылок и Markdown
-      messages.add({
-        "isUser": false,
-        "text": """
-🔍 Вот места, где можно вкусно поесть в Астане с видом на достопримечательности:
-
-• Selfie — на 18-м этаже The Ritz-Carlton, панорамный вид на Байтерек.  
-• Mökki Terrace — терраса с итальянской кухней и видом на центр города.  
-• Eternal Sky (Вечное Небо) — 25-й этаж БЦ «Москва», шикарная панорама и блюда тюркских народов.  
-• Na Kryshe — ресторан с летней террасой над набережной.  
-• Cloud9 dine & bar — вид на сферу Nur Alem и EXPO.  
-• La Rivière — с видом на реку Ишим и мост Караоткель.  
-
-Выберите район (левый берег, центр или правый берег) — и я подскажу ближайшие варианты!  
-"""
-      });
+      messages.add({"isUser": true, "text": userMessage});
+      _isLoading = true;
     });
 
-    _controller.clear();
+    _scrollToBottom();
+
+    try {
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'message': userMessage}),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = json.decode(utf8.decode(response.bodyBytes));
+        
+        setState(() {
+          if (data['success'] == true) {
+            messages.add({
+              "isUser": false,
+              "text": data['response'],
+            });
+          } else {
+            messages.add({
+              "isUser": false,
+              "text": "Извините, произошла ошибка. Попробуйте еще раз. 😔",
+            });
+          }
+          _isLoading = false;
+        });
+      } else {
+        throw Exception('Ошибка сервера: ${response.statusCode}');
+      }
+    } catch (e) {
+      setState(() {
+        messages.add({
+          "isUser": false,
+          "text": "Не удалось связаться с сервером. Проверьте подключение. 🔌",
+        });
+        _isLoading = false;
+      });
+      print('Ошибка: $e');
+    }
+
+    _scrollToBottom();
+  }
+
+  void _scrollToBottom() {
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -2824,16 +2878,48 @@ class _ChatPageState extends State<ChatPage> {
         children: [
           Expanded(
             child: ListView.builder(
+              controller: _scrollController,
               padding: const EdgeInsets.all(16),
-              itemCount: messages.length,
+              itemCount: messages.length + (_isLoading ? 1 : 0),
               itemBuilder: (context, index) {
+                if (index == messages.length && _isLoading) {
+                  return Align(
+                    alignment: Alignment.centerLeft,
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      margin: const EdgeInsets.symmetric(vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: const Color(0xFF18583B),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Text("Думаю...", style: TextStyle(fontSize: 15)),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
                 final msg = messages[index];
                 return Align(
-                  alignment:
-                      msg["isUser"] ? Alignment.centerRight : Alignment.centerLeft,
+                  alignment: msg["isUser"] ? Alignment.centerRight : Alignment.centerLeft,
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     margin: const EdgeInsets.symmetric(vertical: 4),
+                    constraints: BoxConstraints(
+                      maxWidth: MediaQuery.of(context).size.width * 0.75,
+                    ),
                     decoration: BoxDecoration(
                       color: msg["isUser"]
                           ? const Color(0xFF78E9A9)
@@ -2850,23 +2936,43 @@ class _ChatPageState extends State<ChatPage> {
             ),
           ),
           SafeArea(
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    decoration: const InputDecoration(
-                      hintText: "Хабарлама жазыңыз...",
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.all(16),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.shade300,
+                    blurRadius: 4,
+                    offset: const Offset(0, -2),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _controller,
+                      enabled: !_isLoading,
+                      decoration: const InputDecoration(
+                        hintText: "Хабарлама жазыңыз...",
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.all(16),
+                      ),
+                      onSubmitted: (_) => _sendMessage(),
                     ),
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.send, color: Color(0xFF18583B)),
-                  onPressed: _sendMessage,
-                )
-              ],
+                  IconButton(
+                    icon: Icon(
+                      Icons.send,
+                      color: _isLoading
+                          ? Colors.grey
+                          : const Color(0xFF18583B),
+                    ),
+                    onPressed: _isLoading ? null : _sendMessage,
+                  )
+                ],
+              ),
             ),
           ),
         ],
