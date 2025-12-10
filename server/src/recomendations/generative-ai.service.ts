@@ -1,8 +1,7 @@
-import { Injectable , Logger } from "@nestjs/common";
+import { Injectable , Logger, HttpException, HttpStatus } from "@nestjs/common";
 import { LlmContextDto } from "./dto/recomendations.dto";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { recomendationsPromt } from "./promt/recomendations.promt";
-import { HttpException, HttpStatus } from "@nestjs/common";
 import { RecomendationsService } from "./recomendations.service";
 
 @Injectable()
@@ -12,6 +11,14 @@ export class GenerativeAiService {
   private requestCount = 0;
   private lastResetTime = Date.now();
   private readonly RATE_LIMIT_PER_MINUTE = 20;
+
+  // Список моделей для генерации
+  private readonly models = [
+    'gemini-2.5-flash',
+    'gemini-2.5-pro',
+    'gemini-flash-latest',
+    'gemini-flash-lite-latest'
+  ];
 
   constructor(
     private readonly recomendationsService: RecomendationsService,
@@ -30,44 +37,55 @@ export class GenerativeAiService {
       dto.season,
     );
 
-    try {
-      this.logger.log(`Отправка запроса к Gemini. Текущее количество запросов: ${this.requestCount}`);
-      const model = this.genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-      const result = await model.generateContent(prompt);
-      const text = result.response.text();
-      
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) {
-        throw new Error("Не удалось найти JSON-структуру в ответе.");
+    // Пробуем каждую модель до успешного ответа
+    for (const modelName of this.models) {
+      try {
+        this.logger.log(`Попытка запроса к модели ${modelName}. Текущее количество запросов: ${this.requestCount}`);
+        const model = this.genAI.getGenerativeModel({ model: modelName });
+        const result = await model.generateContent(prompt);
+        const text = result.response.text();
+
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) {
+          throw new Error("Не удалось найти JSON-структуру в ответе.");
+        }
+        const parsed = JSON.parse(jsonMatch[0]);
+
+        const tokenCount = result.response.usageMetadata?.totalTokenCount ?? 'unknown';
+        this.logger.log(`Успешно получен и обработан ответ от модели ${modelName}. Всего токенов: ${tokenCount}`);
+
+        const recommendationsToSave = parsed.recommendations.map((rec: any) => ({
+          placeName: rec.placeName,
+          description: rec.description,
+          reason: rec.reason,
+          estimatedPrice: rec.estimatedPrice,
+          timeToVisit: rec.timeToVisit,
+          cityName: dto.cityName,
+        }));
+
+        await this.recomendationsService.createMany(recommendationsToSave);
+        this.logger.log(`Рекомендации успешно сохранены в базе данных.`); 
+
+        return {
+          recommendations: parsed.recommendations,
+          summary: parsed.summary,
+        };
+      } catch (err: any) {
+        this.logger.warn(`Модель ${modelName} недоступна: ${err.message}`);
+        // Если ошибка 503, пробуем следующую модель
+        if (!err.message.includes('503')) {
+          throw new HttpException(
+            `Ошибка при генерации и сохранении рекомендаций: ${err.message}`,
+            HttpStatus.BAD_REQUEST,
+          );
+        }
       }
-      const parsed = JSON.parse(jsonMatch[0]);
-
-      const tokenCount = result.response.usageMetadata?.totalTokenCount ?? 'unknown';
-      this.logger.log(`Успешно получен и обработан ответ от Gemini. Всего токенов: ${tokenCount}`);
-
-      const recommendationsToSave = parsed.recommendations.map((rec: any) => ({
-        placeName: rec.placeName,
-        description: rec.description,
-        reason: rec.reason,
-        estimatedPrice: rec.estimatedPrice,
-        timeToVisit: rec.timeToVisit,
-        cityName: dto.cityName,
-      }));
-
-      await this.recomendationsService.createMany(recommendationsToSave);
-      this.logger.log(`Рекомендации успешно сохранены в базе данных.`); 
-
-      return {
-        recommendations: parsed.recommendations,
-        summary: parsed.summary,
-      };
-    } catch (err) {
-      this.logger.error(`Ошибка при запросе к Gemini: ${err.message}`, err.stack);
-      throw new HttpException(
-        `Ошибка при генерации и сохранении рекомендаций: ${err.message}`,
-        HttpStatus.BAD_REQUEST,
-      );
     }
+
+    throw new HttpException(
+      'Все модели перегружены или недоступны. Попробуйте позже.',
+      HttpStatus.SERVICE_UNAVAILABLE,
+    );
   }
 
   private checkRateLimit() {
